@@ -145,6 +145,16 @@ jobs:
           echo "❌ API returned an error: $response_body"
           exit 1
         fi
+        
+        # Extract application ID from response for use in closing
+        application_id=$(echo "$response_body" | grep -o '"applicationId":"[^"]*"' | cut -d'"' -f4)
+        if [ -n "$application_id" ]; then
+          echo "📝 Extracted Application ID: $application_id"
+          echo "APPLICATION_ID=$application_id" >> $GITHUB_ENV
+        else
+          echo "⚠️  Could not extract application ID from response"
+          echo "APPLICATION_ID=4c77ef2b-5c13-42fd-96c7-a811996795e2" >> $GITHUB_ENV
+        fi
 
     - name: Test Closing Upsert Endpoint
       run: |
@@ -166,7 +176,7 @@ jobs:
                 "partyType": "SETTLEMENT"
               }
             ],
-            "applicationId": "4c77ef2b-5c13-42fd-96c7-a811996795e2",
+            "applicationId": "${{ env.APPLICATION_ID }}",
             "closingType": "HYBRID",
             "closingStart": "2025-10-29T00:00:00-04:00",
             "closingEnd": "2025-10-30T00:00:00-04:00",

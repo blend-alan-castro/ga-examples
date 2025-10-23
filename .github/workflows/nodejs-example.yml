@@ -152,6 +152,15 @@ jobs:
               console.error('❌ API returned an error:', response.data);
               process.exit(1);
             }
+            
+            // Extract application ID from response for use in closing
+            if (response.data && response.data.applicationId) {
+              console.log('📝 Extracted Application ID:', response.data.applicationId);
+              console.log('APPLICATION_ID=' + response.data.applicationId + ' >> $GITHUB_ENV');
+            } else {
+              console.log('⚠️  Could not extract application ID from response');
+              console.log('APPLICATION_ID=4c77ef2b-5c13-42fd-96c7-a811996795e2 >> $GITHUB_ENV');
+            }
           } catch (error) {
             console.error('Error:', error.message);
             if (error.response) {
@@ -182,7 +191,7 @@ jobs:
                   partyType: 'SETTLEMENT'
                 }
               ],
-              applicationId: '4c77ef2b-5c13-42fd-96c7-a811996795e2',
+              applicationId: '${{ env.APPLICATION_ID }}',
               closingType: 'HYBRID',
               closingStart: '2025-10-29T00:00:00-04:00',
               closingEnd: '2025-10-30T00:00:00-04:00',
