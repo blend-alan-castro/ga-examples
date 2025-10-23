@@ -160,3 +160,54 @@ jobs:
           echo "❌ API returned an error: $response_body"
           exit 1
         fi
+
+    - name: Upsert Closing
+      run: |
+        echo "🔒 Upserting Closing..."
+        echo "📍 Using endpoint: ${{ secrets.API_ENDPOINT }}/close/closings"
+        response=$(curl -s -w "\nHTTP_STATUS:%{http_code}\n" -X PUT \
+          -H "Content-Type: application/json" \
+          -H "accept: application/json; charset=utf-8" \
+          -H "Authorization: Bearer ${{ secrets.API_TOKEN }}" \
+          -H "blend-api-version: 10.0.0" \
+          -H "blend-target-instance: ${{ secrets.TENANT }}" \
+          -H "cache-control: no-cache" \
+          -d '{
+            "closingParties": [
+              {
+                "email": "alan-castro+sa@blend.com",
+                "firstName": "Alan",
+                "lastName": "SA",
+                "partyType": "SETTLEMENT"
+              }
+            ],
+            "applicationId": "4c77ef2b-5c13-42fd-96c7-a811996795e2",
+            "closingType": "HYBRID",
+            "closingStart": "2025-10-29T00:00:00-04:00",
+            "closingEnd": "2025-10-30T00:00:00-04:00",
+            "scheduledCeremonyTime": "2025-10-29T00:00:00-04:00",
+            "timezone": "America/New_York"
+          }' \
+          "${{ secrets.API_ENDPOINT }}/close/closings")
+        
+        # Extract HTTP status and response body
+        http_status=$(echo "$response" | grep "HTTP_STATUS:" | cut -d: -f2)
+        response_body=$(echo "$response" | sed '/HTTP_STATUS:/d')
+        
+        echo "📊 Response Status: $http_status"
+        echo "📄 Response Body: $response_body"
+        
+        # Check if request was successful
+        if [ "$http_status" -ge 200 ] && [ "$http_status" -lt 300 ]; then
+          echo "✅ Closing upsert successful!"
+        else
+          echo "❌ Closing upsert failed with status $http_status"
+          echo "Response: $response_body"
+          exit 1
+        fi
+        
+        # Check for error messages in response body
+        if echo "$response_body" | grep -q '"error"'; then
+          echo "❌ API returned an error: $response_body"
+          exit 1
+        fi

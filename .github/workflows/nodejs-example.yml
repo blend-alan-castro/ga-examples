@@ -164,3 +164,58 @@ jobs:
         
         makePostRequest();
         "
+        
+    - name: Upsert Closing with Node.js
+      run: |
+        echo "📍 Using endpoint: ${{ secrets.API_ENDPOINT }}/close/closings"
+        node -e "
+        const axios = require('axios');
+        
+        async function upsertClosing() {
+          try {
+            const response = await axios.put('${{ secrets.API_ENDPOINT }}/close/closings', {
+              closingParties: [
+                {
+                  email: 'alan-castro+sa@blend.com',
+                  firstName: 'Alan',
+                  lastName: 'SA',
+                  partyType: 'SETTLEMENT'
+                }
+              ],
+              applicationId: '4c77ef2b-5c13-42fd-96c7-a811996795e2',
+              closingType: 'HYBRID',
+              closingStart: '2025-10-29T00:00:00-04:00',
+              closingEnd: '2025-10-30T00:00:00-04:00',
+              scheduledCeremonyTime: '2025-10-29T00:00:00-04:00',
+              timezone: 'America/New_York'
+            }, {
+              headers: {
+                'Content-Type': 'application/json',
+                'accept': 'application/json; charset=utf-8',
+                'Authorization': 'Bearer ${{ secrets.API_TOKEN }}',
+                'blend-api-version': '10.0.0',
+                'blend-target-instance': '${{ secrets.TENANT }}',
+                'cache-control': 'no-cache'
+              }
+            });
+            
+            console.log('Response status:', response.status);
+            console.log('Response data:', response.data);
+            
+            // Check for error messages in response
+            if (response.data && response.data.error) {
+              console.error('❌ API returned an error:', response.data);
+              process.exit(1);
+            }
+          } catch (error) {
+            console.error('Error:', error.message);
+            if (error.response) {
+              console.error('Response status:', error.response.status);
+              console.error('Response data:', error.response.data);
+            }
+            process.exit(1);
+          }
+        }
+        
+        upsertClosing();
+        "
