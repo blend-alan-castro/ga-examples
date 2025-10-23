@@ -1,0 +1,84 @@
+name: Test Blend Labs API Endpoints
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  test-blend-apis:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Test Authentication Status Endpoint
+      run: |
+        echo "🔐 Testing Authentication Status endpoint..."
+        curl -X POST \
+          -H "Content-Type: application/json" \
+          -H "Authorization: Bearer ${{ secrets.API_TOKEN }}" \
+          -d '{
+            "message": "GitHub Action test",
+            "repository": "${{ github.repository }}",
+            "branch": "${{ github.ref_name }}",
+            "commit": "${{ github.sha }}",
+            "actor": "${{ github.actor }}",
+            "event": "${{ github.event_name }}",
+            "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"
+          }' \
+          "https://api.beta.blendlabs.com/authentication-status" \
+          -w "\n\n📊 Response Details:\nHTTP Status: %{http_code}\nTotal Time: %{time_total}s\nResponse Size: %{size_download} bytes\n"
+          
+    - name: Test Closings Endpoint
+      run: |
+        echo "📋 Testing Closings endpoint..."
+        curl -X POST \
+          -H "Content-Type: application/json" \
+          -H "Authorization: Bearer ${{ secrets.API_TOKEN }}" \
+          -d '{
+            "message": "GitHub Action test for closings",
+            "repository": "${{ github.repository }}",
+            "branch": "${{ github.ref_name }}",
+            "commit": "${{ github.sha }}",
+            "actor": "${{ github.actor }}",
+            "event": "${{ github.event_name }}",
+            "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'",
+            "applicationId": "aa9fdaa2-7bf3-4411-a836-c2a46117f5c3"
+          }' \
+          "https://api.beta.blendlabs.com/close/closings?applicationId=aa9fdaa2-7bf3-4411-a836-c2a46117f5c3" \
+          -w "\n\n📊 Response Details:\nHTTP Status: %{http_code}\nTotal Time: %{time_total}s\nResponse Size: %{size_download} bytes\n"
+          
+    - name: Test with different HTTP methods
+      run: |
+        echo "🔄 Testing different HTTP methods..."
+        
+        echo "--- GET Authentication Status ---"
+        curl -X GET \
+          -H "Authorization: Bearer ${{ secrets.API_TOKEN }}" \
+          "https://api.beta.blendlabs.com/authentication-status" \
+          -w "\nHTTP Status: %{http_code}\n\n"
+          
+        echo "--- GET Closings ---"
+        curl -X GET \
+          -H "Authorization: Bearer ${{ secrets.API_TOKEN }}" \
+          "https://api.beta.blendlabs.com/close/closings?applicationId=aa9fdaa2-7bf3-4411-a836-c2a46117f5c3" \
+          -w "\nHTTP Status: %{http_code}\n\n"
+          
+    - name: Test with verbose output
+      run: |
+        echo "🔍 Testing with verbose output for debugging..."
+        curl -X POST \
+          -H "Content-Type: application/json" \
+          -H "Authorization: Bearer ${{ secrets.API_TOKEN }}" \
+          -d '{
+            "test": true,
+            "source": "github-actions",
+            "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"
+          }' \
+          "https://api.beta.blendlabs.com/authentication-status" \
+          -v \
+          --max-time 30 \
+          --retry 3 \
+          --retry-delay 2

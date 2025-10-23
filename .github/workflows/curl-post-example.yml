@@ -28,14 +28,14 @@ jobs:
             "actor": "${{ github.actor }}",
             "event": "${{ github.event_name }}"
           }' \
-          "${{ secrets.API_ENDPOINT || 'https://httpbin.org/post' }}"
+          "${{ secrets.API_ENDPOINT || 'https://api.beta.blendlabs.com/authentication-status' }}"
           
     - name: POST with form data
       run: |
         curl -X POST \
           -H "Content-Type: application/x-www-form-urlencoded" \
           -d "name=GitHub Action&status=success&timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-          "${{ secrets.FORM_ENDPOINT || 'https://httpbin.org/post' }}"
+          "${{ secrets.FORM_ENDPOINT || 'https://api.beta.blendlabs.com/close/closings?applicationId=aa9fdaa2-7bf3-4411-a836-c2a46117f5c3' }}"
           
     - name: POST with file upload
       run: |

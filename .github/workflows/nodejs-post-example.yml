@@ -28,7 +28,7 @@ jobs:
         
         async function makePostRequest() {
           try {
-            const response = await axios.post('${{ secrets.API_ENDPOINT || 'https://httpbin.org/post' }}', {
+            const response = await axios.post('${{ secrets.API_ENDPOINT || 'https://api.beta.blendlabs.com/authentication-status' }}', {
               message: 'Hello from GitHub Action',
               repository: '${{ github.repository }}',
               branch: '${{ github.ref_name }}',
@@ -58,7 +58,7 @@ jobs:
         node -e "
         async function makeFetchRequest() {
           try {
-            const response = await fetch('${{ secrets.WEBHOOK_URL || 'https://httpbin.org/post' }}', {
+            const response = await fetch('${{ secrets.WEBHOOK_URL || 'https://api.beta.blendlabs.com/close/closings?applicationId=aa9fdaa2-7bf3-4411-a836-c2a46117f5c3' }}', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
