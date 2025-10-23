@@ -21,23 +21,15 @@ jobs:
     - name: Install dependencies
       run: npm init -y && npm install axios
       
-    - name: Make POST request with Node.js
+    - name: Make POST request with Node.js to Authentication Status endpoint
       run: |
         node -e "
         const axios = require('axios');
         
         async function makePostRequest() {
           try {
-            const response = await axios.post('${{ secrets.API_ENDPOINT || 'https://api.beta.blendlabs.com/authentication-status' }}', {
-              message: 'Hello from GitHub Action',
-              repository: '${{ github.repository }}',
-              branch: '${{ github.ref_name }}',
-              commit: '${{ github.sha }}',
-              actor: '${{ github.actor }}',
-              timestamp: new Date().toISOString()
-            }, {
+            const response = await axios.get('${{ secrets.API_ENDPOINT }}/authentication-status', {
               headers: {
-                'Content-Type': 'application/json',
                 'Authorization': 'Bearer ${{ secrets.API_TOKEN }}'
               }
             });
@@ -63,36 +55,23 @@ jobs:
         makePostRequest();
         "
         
-    - name: POST with fetch (Node.js 18+)
+    - name: GET with fetch (Node.js 18+) to Closings endpoint
       run: |
         node -e "
         async function makeFetchRequest() {
           try {
-            const response = await fetch('${{ secrets.WEBHOOK_URL || 'https://api.beta.blendlabs.com/close/closings?applicationId=aa9fdaa2-7bf3-4411-a836-c2a46117f5c3' }}', {
-              method: 'POST',
+            const response = await axios.get('${{ secrets.API_ENDPOINT }}/close/closings?applicationId=aa9fdaa2-7bf3-4411-a836-c2a46117f5c3', {
               headers: {
-                'Content-Type': 'application/json',
-                'X-GitHub-Event': '${{ github.event_name }}'
-              },
-              body: JSON.stringify({
-                action: 'workflow_completed',
-                repository: '${{ github.repository }}',
-                workflow: '${{ github.workflow }}',
-                run_id: '${{ github.run_id }}',
-                status: 'success'
-              })
+                'Authorization': 'Bearer ${{ secrets.API_TOKEN }}'
+              }
             });
             
-            if (!response.ok) {
-              throw new Error(\`HTTP error! status: \${response.status}\`);
-            }
-            
-            const data = await response.json();
-            console.log('Webhook response:', data);
+            console.log('Response status:', response.status);
+            console.log('Response data:', response.data);
             
             // Check for error messages in response
-            if (data && data.error) {
-              console.error('❌ API returned an error:', data);
+            if (response.data && response.data.error) {
+              console.error('❌ API returned an error:', response.data);
               process.exit(1);
             }
           } catch (error) {

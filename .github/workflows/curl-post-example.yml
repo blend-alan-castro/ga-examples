@@ -15,21 +15,13 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Make POST request with curl
+    - name: Test Authentication Status endpoint
       run: |
         echo "🔐 Testing Authentication Status endpoint..."
         response=$(curl -s -w "\nHTTP_STATUS:%{http_code}\n" -X POST \
           -H "Content-Type: application/json" \
           -H "Authorization: Bearer ${{ secrets.API_TOKEN }}" \
-          -d '{
-            "message": "GitHub Action triggered",
-            "repository": "${{ github.repository }}",
-            "branch": "${{ github.ref_name }}",
-            "commit": "${{ github.sha }}",
-            "actor": "${{ github.actor }}",
-            "event": "${{ github.event_name }}"
-          }' \
-          "${{ secrets.API_ENDPOINT || 'https://api.beta.blendlabs.com/authentication-status' }}")
+          "${{ secrets.API_ENDPOINT }}/authentication-status")
         
         # Extract HTTP status and response body
         http_status=$(echo "$response" | grep "HTTP_STATUS:" | cut -d: -f2)
@@ -40,9 +32,9 @@ jobs:
         
         # Check if request was successful
         if [ "$http_status" -ge 200 ] && [ "$http_status" -lt 300 ]; then
-          echo "✅ Request successful!"
+          echo "✅ Authentication Status request successful!"
         else
-          echo "❌ Request failed with status $http_status"
+          echo "❌ Authentication Status request failed with status $http_status"
           echo "Response: $response_body"
           exit 1
         fi
@@ -52,38 +44,7 @@ jobs:
           echo "❌ API returned an error: $response_body"
           exit 1
         fi
-          
-    - name: POST with form data
-      run: |
-        echo "📋 Testing Closings endpoint with form data..."
-        response=$(curl -s -w "\nHTTP_STATUS:%{http_code}\n" -X POST \
-          -H "Content-Type: application/x-www-form-urlencoded" \
-          -H "Authorization: Bearer ${{ secrets.API_TOKEN }}" \
-          -d "name=GitHub Action&status=success&timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)&repository=${{ github.repository }}" \
-          "${{ secrets.FORM_ENDPOINT || 'https://api.beta.blendlabs.com/close/closings?applicationId=aa9fdaa2-7bf3-4411-a836-c2a46117f5c3' }}")
-        
-        # Extract HTTP status and response body
-        http_status=$(echo "$response" | grep "HTTP_STATUS:" | cut -d: -f2)
-        response_body=$(echo "$response" | sed '/HTTP_STATUS:/d')
-        
-        echo "📊 Response Status: $http_status"
-        echo "📄 Response Body: $response_body"
-        
-        # Check if request was successful
-        if [ "$http_status" -ge 200 ] && [ "$http_status" -lt 300 ]; then
-          echo "✅ Form data request successful!"
-        else
-          echo "❌ Form data request failed with status $http_status"
-          echo "Response: $response_body"
-          exit 1
-        fi
-        
-        # Check for error messages in response body
-        if echo "$response_body" | grep -q '"error"'; then
-          echo "❌ API returned an error: $response_body"
-          exit 1
-        fi
-          
+
     - name: Test JSON POST to Closings endpoint
       run: |
         echo "📋 Testing Closings endpoint with JSON data..."
@@ -100,7 +61,7 @@ jobs:
             "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'",
             "applicationId": "aa9fdaa2-7bf3-4411-a836-c2a46117f5c3"
           }' \
-          "${{ secrets.CLOSINGS_ENDPOINT || 'https://api.beta.blendlabs.com/close/closings?applicationId=aa9fdaa2-7bf3-4411-a836-c2a46117f5c3' }}")
+          "${{ secrets.API_ENDPOINT }}/close/closings?applicationId=aa9fdaa2-7bf3-4411-a836-c2a46117f5c3")
         
         # Extract HTTP status and response body
         http_status=$(echo "$response" | grep "HTTP_STATUS:" | cut -d: -f2)
