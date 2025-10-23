@@ -61,6 +61,8 @@ jobs:
       run: |
         echo "📍 Using endpoint: ${{ secrets.API_ENDPOINT }}/close/closings?applicationId=aa9fdaa2-7bf3-4411-a836-c2a46117f5c3"
         node -e "
+        const axios = require('axios');
+        
         async function makeGetRequest() {
           try {
             const response = await axios.get('${{ secrets.API_ENDPOINT }}/close/closings?applicationId=aa9fdaa2-7bf3-4411-a836-c2a46117f5c3', {
