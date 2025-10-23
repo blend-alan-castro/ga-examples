@@ -76,3 +76,61 @@ jobs:
           echo "❌ API returned an error: $response_body"
           exit 1
         fi
+
+    - name: Test Applications Endpoint
+      run: |
+        echo "📋 Testing Applications endpoint..."
+        echo "📍 Using endpoint: ${{ secrets.API_ENDPOINT }}/home-lending/applications"
+        response=$(curl -s -w "\nHTTP_STATUS:%{http_code}\n" -X POST \
+          -H "Content-Type: application/json" \
+          -H "Authorization: Bearer ${{ secrets.API_TOKEN }}" \
+          -H "blend-target-instance: ${{ secrets.TENANT }}" \
+          -d '{
+            "solutionSubType": "MORTGAGE",
+            "party": {
+              "name": {
+                "firstName": "Alan ",
+                "lastName": "Test GA"
+              },
+              "taxpayerIdentifier": {
+                "type": "SOCIAL_SECURITY_NUMBER",
+                "value": "000113933"
+              },
+              "email": "alan-castro+athenaai@blend.com",
+              "dateOfBirth": "1995-10-03T20:07:27+00:00"
+            },
+            "redirect": true,
+            "sendEmailInvite": true,
+            "applicationSource": {
+              "type": "LOS"
+            },
+            "applicationExperienceType": "FULL_APPLICATION",
+            "loanPurposeType": "PURCHASE",
+            "locPurposeType": "HOME_PURCHASE",
+            "homeEquityLoanPurposeType": "HOME_PURCHASE",
+            "lienPriorityType": "FIRST_LIEN",
+            "paymentType": "INTEREST_ONLY",
+            "loanAmount": 100000,
+            "communityId": "12345",
+            "leadId": "leadId1",
+            "crmId": "crmLead1",
+            "losId": "Loan-12391",
+            "referenceNumber": 124123,
+            "applicationTemplateId": "fd658b97-f901-4b14-b693-4654d276c909",
+            "appSource": "ORGANIC_LEAD",
+            "interestRate": 4.25,
+            "mortgageType": "CONVENTIONAL",
+            "branchIdOverride": "12345"
+          }' \
+          "${{ secrets.API_ENDPOINT }}/home-lending/applications")
+        
+        # Extract HTTP status and response body
+        http_status=$(echo "$response" | grep "HTTP_STATUS:" | cut -d: -f2)
+        response_body=$(echo "$response" | sed '/HTTP_STATUS:/d')
+        
+        echo "📊 Response Status: $http_status"
+        echo "📄 Response Body: $response_body"
+        
+        # Check if request was successful
+        if [ "$http_status" -ge 200 ] && [ "$http_status" -lt 300 ]; then
+          echo "✅ Applications request successful!"

@@ -100,6 +100,10 @@ jobs:
             const response = await axios.post('${{ secrets.API_ENDPOINT }}/home-lending/applications', {
               solutionSubType: 'MORTGAGE',
               party: {
+                name: {
+                  firstName: 'Alan ',
+                  lastName: 'Test GA'
+                },
                 taxpayerIdentifier: {
                   type: 'SOCIAL_SECURITY_NUMBER',
                   value: '000113933'
