@@ -16,7 +16,7 @@ jobs:
     - name: Test Authentication Status Endpoint
       run: |
         echo "🔐 Testing Authentication Status endpoint..."
-        curl -X POST \
+        response=$(curl -s -w "\nHTTP_STATUS:%{http_code}\n" -X POST \
           -H "Content-Type: application/json" \
           -H "Authorization: Bearer ${{ secrets.API_TOKEN }}" \
           -d '{
@@ -28,13 +28,34 @@ jobs:
             "event": "${{ github.event_name }}",
             "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"
           }' \
-          "https://api.beta.blendlabs.com/authentication-status" \
-          -w "\n\n📊 Response Details:\nHTTP Status: %{http_code}\nTotal Time: %{time_total}s\nResponse Size: %{size_download} bytes\n"
+          "https://api.beta.blendlabs.com/authentication-status")
+        
+        # Extract HTTP status and response body
+        http_status=$(echo "$response" | grep "HTTP_STATUS:" | cut -d: -f2)
+        response_body=$(echo "$response" | sed '/HTTP_STATUS:/d')
+        
+        echo "📊 Response Status: $http_status"
+        echo "📄 Response Body: $response_body"
+        
+        # Check if request was successful
+        if [ "$http_status" -ge 200 ] && [ "$http_status" -lt 300 ]; then
+          echo "✅ Authentication Status request successful!"
+        else
+          echo "❌ Authentication Status request failed with status $http_status"
+          echo "Response: $response_body"
+          exit 1
+        fi
+        
+        # Check for error messages in response body
+        if echo "$response_body" | grep -q '"error"'; then
+          echo "❌ API returned an error: $response_body"
+          exit 1
+        fi
           
     - name: Test Closings Endpoint
       run: |
         echo "📋 Testing Closings endpoint..."
-        curl -X POST \
+        response=$(curl -s -w "\nHTTP_STATUS:%{http_code}\n" -X POST \
           -H "Content-Type: application/json" \
           -H "Authorization: Bearer ${{ secrets.API_TOKEN }}" \
           -d '{
@@ -47,24 +68,65 @@ jobs:
             "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'",
             "applicationId": "aa9fdaa2-7bf3-4411-a836-c2a46117f5c3"
           }' \
-          "https://api.beta.blendlabs.com/close/closings?applicationId=aa9fdaa2-7bf3-4411-a836-c2a46117f5c3" \
-          -w "\n\n📊 Response Details:\nHTTP Status: %{http_code}\nTotal Time: %{time_total}s\nResponse Size: %{size_download} bytes\n"
+          "https://api.beta.blendlabs.com/close/closings?applicationId=aa9fdaa2-7bf3-4411-a836-c2a46117f5c3")
+        
+        # Extract HTTP status and response body
+        http_status=$(echo "$response" | grep "HTTP_STATUS:" | cut -d: -f2)
+        response_body=$(echo "$response" | sed '/HTTP_STATUS:/d')
+        
+        echo "📊 Response Status: $http_status"
+        echo "📄 Response Body: $response_body"
+        
+        # Check if request was successful
+        if [ "$http_status" -ge 200 ] && [ "$http_status" -lt 300 ]; then
+          echo "✅ Closings request successful!"
+        else
+          echo "❌ Closings request failed with status $http_status"
+          echo "Response: $response_body"
+          exit 1
+        fi
+        
+        # Check for error messages in response body
+        if echo "$response_body" | grep -q '"error"'; then
+          echo "❌ API returned an error: $response_body"
+          exit 1
+        fi
           
     - name: Test with different HTTP methods
       run: |
         echo "🔄 Testing different HTTP methods..."
         
         echo "--- GET Authentication Status ---"
-        curl -X GET \
+        response=$(curl -s -w "\nHTTP_STATUS:%{http_code}\n" -X GET \
           -H "Authorization: Bearer ${{ secrets.API_TOKEN }}" \
-          "https://api.beta.blendlabs.com/authentication-status" \
-          -w "\nHTTP Status: %{http_code}\n\n"
+          "https://api.beta.blendlabs.com/authentication-status")
+        
+        http_status=$(echo "$response" | grep "HTTP_STATUS:" | cut -d: -f2)
+        response_body=$(echo "$response" | sed '/HTTP_STATUS:/d')
+        
+        echo "GET Auth Status: $http_status - $response_body"
+        
+        # Fail on 4xx/5xx or error responses
+        if [ "$http_status" -ge 400 ] || echo "$response_body" | grep -q '"error"'; then
+          echo "❌ GET Authentication Status failed"
+          exit 1
+        fi
           
         echo "--- GET Closings ---"
-        curl -X GET \
+        response=$(curl -s -w "\nHTTP_STATUS:%{http_code}\n" -X GET \
           -H "Authorization: Bearer ${{ secrets.API_TOKEN }}" \
-          "https://api.beta.blendlabs.com/close/closings?applicationId=aa9fdaa2-7bf3-4411-a836-c2a46117f5c3" \
-          -w "\nHTTP Status: %{http_code}\n\n"
+          "https://api.beta.blendlabs.com/close/closings?applicationId=aa9fdaa2-7bf3-4411-a836-c2a46117f5c3")
+        
+        http_status=$(echo "$response" | grep "HTTP_STATUS:" | cut -d: -f2)
+        response_body=$(echo "$response" | sed '/HTTP_STATUS:/d')
+        
+        echo "GET Closings: $http_status - $response_body"
+        
+        # Fail on 4xx/5xx or error responses
+        if [ "$http_status" -ge 400 ] || echo "$response_body" | grep -q '"error"'; then
+          echo "❌ GET Closings failed"
+          exit 1
+        fi
           
     - name: Test with verbose output
       run: |
