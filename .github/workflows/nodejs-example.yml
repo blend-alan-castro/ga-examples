@@ -156,10 +156,12 @@ jobs:
             // Extract application ID from response for use in closing
             if (response.data && response.data.id) {
               console.log('📝 Extracted Application ID:', response.data.id);
-              console.log('APPLICATION_ID=' + response.data.id + ' >> $GITHUB_ENV');
+              // Write to file for next step to read
+              require('fs').writeFileSync('application_id.txt', response.data.id);
             } else {
               console.log('⚠️  Could not extract application ID from response');
-              console.log('APPLICATION_ID=4c77ef2b-5c13-42fd-96c7-a811996795e2 >> $GITHUB_ENV');
+              // Write fallback to file
+              require('fs').writeFileSync('application_id.txt', '4c77ef2b-5c13-42fd-96c7-a811996795e2');
             }
           } catch (error) {
             console.error('Error:', error.message);
@@ -173,6 +175,17 @@ jobs:
         
         makePostRequest();
         "
+        
+    - name: Set Application ID from file
+      run: |
+        if [ -f application_id.txt ]; then
+          APPLICATION_ID=$(cat application_id.txt)
+          echo "📝 Using Application ID from file: $APPLICATION_ID"
+          echo "APPLICATION_ID=$APPLICATION_ID" >> $GITHUB_ENV
+        else
+          echo "⚠️  Application ID file not found, using fallback"
+          echo "APPLICATION_ID=4c77ef2b-5c13-42fd-96c7-a811996795e2" >> $GITHUB_ENV
+        fi
         
     - name: Upsert Closing with Node.js
       run: |
