@@ -18,6 +18,7 @@ jobs:
     - name: Test Authentication Status endpoint
       run: |
         echo "🔐 Testing Authentication Status endpoint..."
+        echo "📍 Using endpoint: ${{ secrets.API_ENDPOINT }}/authentication-status"
         response=$(curl -s -w "\nHTTP_STATUS:%{http_code}\n" -X GET \
           -H "Content-Type: application/json" \
           -H "Authorization: Bearer ${{ secrets.API_TOKEN }}" \
@@ -28,7 +29,7 @@ jobs:
         http_status=$(echo "$response" | grep "HTTP_STATUS:" | cut -d: -f2)
         response_body=$(echo "$response" | sed '/HTTP_STATUS:/d')
         
-        echo "📊 Response Status: $http_status"
+        echo "📊 Response Status: $http_status"nm n 
         echo "📄 Response Body: $response_body"
         
         # Check if request was successful
@@ -49,6 +50,7 @@ jobs:
     - name: Test JSON GET to Closings endpoint
       run: |
         echo "📋 Testing Closings endpoint with JSON data..."
+        echo "📍 Using endpoint: ${{ secrets.API_ENDPOINT }}/close/closings?applicationId=aa9fdaa2-7bf3-4411-a836-c2a46117f5c3"
         response=$(curl -s -w "\nHTTP_STATUS:%{http_code}\n" -X GET \
           -H "Content-Type: application/json" \
           -H "Authorization: Bearer ${{ secrets.API_TOKEN }}" \

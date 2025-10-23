@@ -23,6 +23,7 @@ jobs:
       
     - name: Make GET request with Node.js to Authentication Status endpoint
       run: |
+        echo "📍 Using endpoint: ${{ secrets.API_ENDPOINT }}/authentication-status"
         node -e "
         const axios = require('axios');
         
@@ -58,6 +59,7 @@ jobs:
         
     - name: Make GET request with Node.js to Closings endpoint
       run: |
+        echo "📍 Using endpoint: ${{ secrets.API_ENDPOINT }}/close/closings?applicationId=aa9fdaa2-7bf3-4411-a836-c2a46117f5c3"
         node -e "
         async function makeGetRequest() {
           try {
