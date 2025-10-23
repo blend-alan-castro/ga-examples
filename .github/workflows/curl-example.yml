@@ -162,7 +162,7 @@ jobs:
         fi
         
         # Extract application ID from response for use in closing
-        application_id=$(echo "$response_body" | grep -o '"applicationId":"[^"]*"' | cut -d'"' -f4)
+        application_id=$(echo "$response_body" | grep -o '"id":"[^"]*"' | cut -d'"' -f4)
         if [ -n "$application_id" ]; then
           echo "📝 Extracted Application ID: $application_id"
           echo "APPLICATION_ID=$application_id" >> $GITHUB_ENV

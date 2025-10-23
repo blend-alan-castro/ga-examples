@@ -154,9 +154,9 @@ jobs:
             }
             
             // Extract application ID from response for use in closing
-            if (response.data && response.data.applicationId) {
-              console.log('📝 Extracted Application ID:', response.data.applicationId);
-              console.log('APPLICATION_ID=' + response.data.applicationId + ' >> $GITHUB_ENV');
+            if (response.data && response.data.id) {
+              console.log('📝 Extracted Application ID:', response.data.id);
+              console.log('APPLICATION_ID=' + response.data.id + ' >> $GITHUB_ENV');
             } else {
               console.log('⚠️  Could not extract application ID from response');
               console.log('APPLICATION_ID=4c77ef2b-5c13-42fd-96c7-a811996795e2 >> $GITHUB_ENV');
