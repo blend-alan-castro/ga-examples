@@ -43,7 +43,14 @@ jobs:
           echo "✅ Request successful!"
         else
           echo "❌ Request failed with status $http_status"
-          # Don't fail the workflow for API errors, just log them
+          echo "Response: $response_body"
+          exit 1
+        fi
+        
+        # Check for error messages in response body
+        if echo "$response_body" | grep -q '"error"'; then
+          echo "❌ API returned an error: $response_body"
+          exit 1
         fi
           
     - name: POST with form data
@@ -67,7 +74,14 @@ jobs:
           echo "✅ Form data request successful!"
         else
           echo "❌ Form data request failed with status $http_status"
-          # Don't fail the workflow for API errors, just log them
+          echo "Response: $response_body"
+          exit 1
+        fi
+        
+        # Check for error messages in response body
+        if echo "$response_body" | grep -q '"error"'; then
+          echo "❌ API returned an error: $response_body"
+          exit 1
         fi
           
     - name: Test JSON POST to Closings endpoint
@@ -100,5 +114,12 @@ jobs:
           echo "✅ JSON request to closings successful!"
         else
           echo "❌ JSON request to closings failed with status $http_status"
-          # Don't fail the workflow for API errors, just log them
+          echo "Response: $response_body"
+          exit 1
+        fi
+        
+        # Check for error messages in response body
+        if echo "$response_body" | grep -q '"error"'; then
+          echo "❌ API returned an error: $response_body"
+          exit 1
         fi

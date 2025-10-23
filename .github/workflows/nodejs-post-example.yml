@@ -44,8 +44,18 @@ jobs:
             
             console.log('Response status:', response.status);
             console.log('Response data:', response.data);
+            
+            // Check for error messages in response
+            if (response.data && response.data.error) {
+              console.error('❌ API returned an error:', response.data);
+              process.exit(1);
+            }
           } catch (error) {
             console.error('Error:', error.message);
+            if (error.response) {
+              console.error('Response status:', error.response.status);
+              console.error('Response data:', error.response.data);
+            }
             process.exit(1);
           }
         }
@@ -79,6 +89,12 @@ jobs:
             
             const data = await response.json();
             console.log('Webhook response:', data);
+            
+            // Check for error messages in response
+            if (data && data.error) {
+              console.error('❌ API returned an error:', data);
+              process.exit(1);
+            }
           } catch (error) {
             console.error('Error:', error.message);
             process.exit(1);
