@@ -1,0 +1,199 @@
+name: Advanced POST Request Example
+
+on:
+  workflow_dispatch:
+    inputs:
+      endpoint:
+        description: 'API endpoint URL'
+        required: true
+        default: 'https://httpbin.org/post'
+      message:
+        description: 'Message to send'
+        required: false
+        default: 'Hello from GitHub Action'
+      retry_count:
+        description: 'Number of retries on failure'
+        required: false
+        default: '3'
+
+jobs:
+  advanced-post:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Install dependencies
+      run: npm init -y && npm install axios retry-axios
+      
+    - name: Advanced POST with retry logic
+      run: |
+        node -e "
+        const axios = require('axios');
+        const retryAxios = require('retry-axios');
+        
+        // Configure retry logic
+        const http = axios.create();
+        http.defaults.retry = ${{ github.event.inputs.retry_count || 3 }};
+        http.defaults.retryDelay = 1000;
+        http.defaults.retryCondition = (error) => {
+          return retryAxios.isNetworkOrIdempotentRequestError(error) || 
+                 (error.response && error.response.status >= 500);
+        };
+        
+        retryAxios.attach(http);
+        
+        async function makeAdvancedRequest() {
+          const payload = {
+            message: '${{ github.event.inputs.message || 'Hello from GitHub Action' }}',
+            repository: '${{ github.repository }}',
+            branch: '${{ github.ref_name }}',
+            commit: '${{ github.sha }}',
+            actor: '${{ github.actor }}',
+            workflow: '${{ github.workflow }}',
+            run_id: '${{ github.run_id }}',
+            timestamp: new Date().toISOString(),
+            environment: '${{ github.ref_name }}',
+            event: '${{ github.event_name }}'
+          };
+          
+          const config = {
+            headers: {
+              'Content-Type': 'application/json',
+              'User-Agent': 'GitHub-Actions-Advanced/1.0',
+              'X-GitHub-Event': '${{ github.event_name }}',
+              'X-GitHub-Delivery': '${{ github.run_id }}'
+            },
+            timeout: 30000,
+            validateStatus: (status) => status < 500 // Don't retry on 4xx errors
+          };
+          
+          try {
+            console.log('Sending request to:', '${{ github.event.inputs.endpoint }}');
+            console.log('Payload:', JSON.stringify(payload, null, 2));
+            
+            const response = await http.post('${{ github.event.inputs.endpoint }}', payload, config);
+            
+            console.log('✅ Success!');
+            console.log('Status:', response.status);
+            console.log('Response:', JSON.stringify(response.data, null, 2));
+            
+            // Set output for next steps
+            console.log('::set-output name=response_status::' + response.status);
+            console.log('::set-output name=response_data::' + JSON.stringify(response.data));
+            
+          } catch (error) {
+            console.error('❌ Request failed after retries');
+            console.error('Error:', error.message);
+            if (error.response) {
+              console.error('Status:', error.response.status);
+              console.error('Response:', error.response.data);
+            }
+            process.exit(1);
+          }
+        }
+        
+        makeAdvancedRequest();
+        "
+        
+    - name: POST with authentication
+      run: |
+        node -e "
+        const axios = require('axios');
+        
+        async function authenticatedRequest() {
+          try {
+            // First, get an access token
+            const authResponse = await axios.post('${{ secrets.AUTH_ENDPOINT }}', {
+              client_id: '${{ secrets.CLIENT_ID }}',
+              client_secret: '${{ secrets.CLIENT_SECRET }}',
+              grant_type: 'client_credentials'
+            });
+            
+            const accessToken = authResponse.data.access_token;
+            console.log('✅ Authentication successful');
+            
+            // Now make the authenticated request
+            const response = await axios.post('${{ secrets.PROTECTED_ENDPOINT }}', {
+              message: 'Authenticated request from GitHub Action',
+              repository: '${{ github.repository }}',
+              timestamp: new Date().toISOString()
+            }, {
+              headers: {
+                'Authorization': \`Bearer \${accessToken}\`,
+                'Content-Type': 'application/json'
+              }
+            });
+            
+            console.log('✅ Authenticated request successful');
+            console.log('Status:', response.status);
+            console.log('Response:', response.data);
+            
+          } catch (error) {
+            console.error('❌ Authenticated request failed');
+            console.error('Error:', error.message);
+            process.exit(1);
+          }
+        }
+        
+        authenticatedRequest();
+        "
+        
+    - name: Batch POST requests
+      run: |
+        node -e "
+        const axios = require('axios');
+        
+        async function batchRequests() {
+          const endpoints = [
+            '${{ secrets.ENDPOINT_1 }}',
+            '${{ secrets.ENDPOINT_2 }}',
+            '${{ secrets.ENDPOINT_3 }}'
+          ];
+          
+          const basePayload = {
+            repository: '${{ github.repository }}',
+            commit: '${{ github.sha }}',
+            actor: '${{ github.actor }}',
+            timestamp: new Date().toISOString()
+          };
+          
+          const requests = endpoints.map((endpoint, index) => 
+            axios.post(endpoint, {
+              ...basePayload,
+              message: \`Batch request \${index + 1}\`,
+              endpoint_index: index
+            }, {
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              timeout: 10000
+            })
+          );
+          
+          try {
+            console.log('Sending batch requests to', endpoints.length, 'endpoints');
+            const responses = await Promise.allSettled(requests);
+            
+            responses.forEach((result, index) => {
+              if (result.status === 'fulfilled') {
+                console.log(\`✅ Endpoint \${index + 1}: \${result.value.status}\`);
+              } else {
+                console.log(\`❌ Endpoint \${index + 1}: \${result.reason.message}\`);
+              }
+            });
+            
+          } catch (error) {
+            console.error('Batch request error:', error.message);
+            process.exit(1);
+          }
+        }
+        
+        batchRequests();
+        "

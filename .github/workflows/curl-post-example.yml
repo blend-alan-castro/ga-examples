@@ -1,0 +1,46 @@
+name: Curl POST Request Example
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  curl-post:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Make POST request with curl
+      run: |
+        curl -X POST \
+          -H "Content-Type: application/json" \
+          -H "Authorization: Bearer ${{ secrets.API_TOKEN }}" \
+          -d '{
+            "message": "GitHub Action triggered",
+            "repository": "${{ github.repository }}",
+            "branch": "${{ github.ref_name }}",
+            "commit": "${{ github.sha }}",
+            "actor": "${{ github.actor }}",
+            "event": "${{ github.event_name }}"
+          }' \
+          "${{ secrets.WEBHOOK_URL }}"
+          
+    - name: POST with form data
+      run: |
+        curl -X POST \
+          -H "Content-Type: application/x-www-form-urlencoded" \
+          -d "name=GitHub Action&status=success&timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+          "${{ secrets.API_ENDPOINT }}"
+          
+    - name: POST with file upload
+      run: |
+        echo "This is a test file" > test.txt
+        curl -X POST \
+          -F "file=@test.txt" \
+          -F "description=Test file from GitHub Action" \
+          "${{ secrets.FILE_UPLOAD_URL }}"

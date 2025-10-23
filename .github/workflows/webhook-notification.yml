@@ -1,0 +1,178 @@
+name: Webhook Notification Example
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    types: [opened, closed, merged]
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  webhook-notification:
+    runs-on: ubuntu-latest
+    if: always() # Run even if previous steps fail
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Send webhook notification
+      run: |
+        # Determine the status based on job result
+        if [ "${{ job.status }}" == "success" ]; then
+          STATUS="success"
+          COLOR="good"
+        elif [ "${{ job.status }}" == "failure" ]; then
+          STATUS="failure"
+          COLOR="danger"
+        else
+          STATUS="warning"
+          COLOR="warning"
+        fi
+        
+        # Prepare webhook payload
+        curl -X POST \
+          -H "Content-Type: application/json" \
+          -H "X-GitHub-Event: ${{ github.event_name }}" \
+          -H "X-GitHub-Delivery: ${{ github.run_id }}" \
+          -d '{
+            "text": "GitHub Action Notification",
+            "attachments": [
+              {
+                "color": "'$COLOR'",
+                "fields": [
+                  {
+                    "title": "Repository",
+                    "value": "${{ github.repository }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Branch",
+                    "value": "${{ github.ref_name }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Commit",
+                    "value": "${{ github.sha }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Actor",
+                    "value": "${{ github.actor }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Event",
+                    "value": "${{ github.event_name }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Status",
+                    "value": "'$STATUS'",
+                    "short": true
+                  },
+                  {
+                    "title": "Workflow",
+                    "value": "${{ github.workflow }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Run ID",
+                    "value": "${{ github.run_id }}",
+                    "short": true
+                  }
+                ],
+                "footer": "GitHub Actions",
+                "ts": '$(date +%s)'
+              }
+            ]
+          }' \
+          "${{ secrets.WEBHOOK_URL }}"
+          
+    - name: Send Discord webhook
+      if: github.event_name == 'push' && github.ref_name == 'main'
+      run: |
+        curl -X POST \
+          -H "Content-Type: application/json" \
+          -d '{
+            "username": "GitHub Actions",
+            "avatar_url": "https://github.com/actions.png",
+            "embeds": [
+              {
+                "title": "🚀 New Push to Main",
+                "description": "A new commit has been pushed to the main branch",
+                "color": 65280,
+                "fields": [
+                  {
+                    "name": "Repository",
+                    "value": "${{ github.repository }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Commit",
+                    "value": "[${{ github.sha }}](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})",
+                    "inline": true
+                  },
+                  {
+                    "name": "Author",
+                    "value": "${{ github.actor }}",
+                    "inline": true
+                  }
+                ],
+                "footer": {
+                  "text": "GitHub Actions • ${{ github.workflow }}"
+                },
+                "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"
+              }
+            ]
+          }' \
+          "${{ secrets.DISCORD_WEBHOOK_URL }}"
+          
+    - name: Send Slack notification
+      if: github.event_name == 'pull_request'
+      run: |
+        curl -X POST \
+          -H "Content-Type: application/json" \
+          -d '{
+            "channel": "#github-notifications",
+            "username": "GitHub Actions",
+            "icon_emoji": ":octocat:",
+            "text": "Pull Request ${{ github.event.action }}",
+            "attachments": [
+              {
+                "color": "good",
+                "fields": [
+                  {
+                    "title": "PR #${{ github.event.number }}",
+                    "value": "${{ github.event.pull_request.title }}",
+                    "short": false
+                  },
+                  {
+                    "title": "Repository",
+                    "value": "${{ github.repository }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Author",
+                    "value": "${{ github.actor }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Action",
+                    "value": "${{ github.event.action }}",
+                    "short": true
+                  }
+                ],
+                "actions": [
+                  {
+                    "type": "button",
+                    "text": "View PR",
+                    "url": "${{ github.event.pull_request.html_url }}"
+                  }
+                ]
+              }
+            ]
+          }' \
+          "${{ secrets.SLACK_WEBHOOK_URL }}"

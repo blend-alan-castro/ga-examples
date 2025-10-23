@@ -1,0 +1,89 @@
+name: Node.js POST Request Example
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  nodejs-post:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Install dependencies
+      run: npm init -y && npm install axios
+      
+    - name: Make POST request with Node.js
+      run: |
+        node -e "
+        const axios = require('axios');
+        
+        async function makePostRequest() {
+          try {
+            const response = await axios.post('${{ secrets.API_ENDPOINT }}', {
+              message: 'Hello from GitHub Action',
+              repository: '${{ github.repository }}',
+              branch: '${{ github.ref_name }}',
+              commit: '${{ github.sha }}',
+              actor: '${{ github.actor }}',
+              timestamp: new Date().toISOString()
+            }, {
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ${{ secrets.API_TOKEN }}'
+              }
+            });
+            
+            console.log('Response status:', response.status);
+            console.log('Response data:', response.data);
+          } catch (error) {
+            console.error('Error:', error.message);
+            process.exit(1);
+          }
+        }
+        
+        makePostRequest();
+        "
+        
+    - name: POST with fetch (Node.js 18+)
+      run: |
+        node -e "
+        async function makeFetchRequest() {
+          try {
+            const response = await fetch('${{ secrets.WEBHOOK_URL }}', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-GitHub-Event': '${{ github.event_name }}'
+              },
+              body: JSON.stringify({
+                action: 'workflow_completed',
+                repository: '${{ github.repository }}',
+                workflow: '${{ github.workflow }}',
+                run_id: '${{ github.run_id }}',
+                status: 'success'
+              })
+            });
+            
+            if (!response.ok) {
+              throw new Error(\`HTTP error! status: \${response.status}\`);
+            }
+            
+            const data = await response.json();
+            console.log('Webhook response:', data);
+          } catch (error) {
+            console.error('Error:', error.message);
+            process.exit(1);
+          }
+        }
+        
+        makeFetchRequest();
+        "
