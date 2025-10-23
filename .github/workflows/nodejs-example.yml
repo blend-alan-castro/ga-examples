@@ -1,4 +1,4 @@
-name: Node.js POST Request Example
+name: Node.js Request Example
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  nodejs-post:
+  nodejs-get:
     runs-on: ubuntu-latest
     
     steps:

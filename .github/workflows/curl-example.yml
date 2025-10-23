@@ -1,4 +1,4 @@
-name: Curl POST Request Example
+name: Curl Request Example
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  curl-post:
+  curl-get:
     runs-on: ubuntu-latest
     
     steps:
