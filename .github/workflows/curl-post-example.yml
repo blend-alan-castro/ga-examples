@@ -28,14 +28,14 @@ jobs:
             "actor": "${{ github.actor }}",
             "event": "${{ github.event_name }}"
           }' \
-          "${{ secrets.WEBHOOK_URL }}"
+          "${{ secrets.API_ENDPOINT || 'https://httpbin.org/post' }}"
           
     - name: POST with form data
       run: |
         curl -X POST \
           -H "Content-Type: application/x-www-form-urlencoded" \
           -d "name=GitHub Action&status=success&timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-          "${{ secrets.API_ENDPOINT }}"
+          "${{ secrets.FORM_ENDPOINT || 'https://httpbin.org/post' }}"
           
     - name: POST with file upload
       run: |
@@ -43,4 +43,4 @@ jobs:
         curl -X POST \
           -F "file=@test.txt" \
           -F "description=Test file from GitHub Action" \
-          "${{ secrets.FILE_UPLOAD_URL }}"
+          "${{ secrets.FILE_UPLOAD_URL || 'https://httpbin.org/post' }}"

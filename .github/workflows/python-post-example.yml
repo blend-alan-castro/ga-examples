@@ -49,7 +49,7 @@ jobs:
         
         try:
             response = requests.post(
-                os.environ['API_ENDPOINT'],
+                os.environ.get('API_ENDPOINT', 'https://httpbin.org/post'),
                 json=data,
                 headers=headers,
                 timeout=30
@@ -86,7 +86,7 @@ jobs:
         
         try:
             response = requests.post(
-                os.environ['FORM_ENDPOINT'],
+                os.environ.get('FORM_ENDPOINT', 'https://httpbin.org/post'),
                 data=form_data,
                 timeout=30
             )
@@ -121,7 +121,7 @@ jobs:
                 data = {'description': 'Test file from Python GitHub Action'}
                 
                 response = requests.post(
-                    os.environ['FILE_UPLOAD_URL'],
+                    os.environ.get('FILE_UPLOAD_URL', 'https://httpbin.org/post'),
                     files=files,
                     data=data,
                     timeout=30

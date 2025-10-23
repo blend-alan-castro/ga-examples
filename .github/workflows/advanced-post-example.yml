@@ -75,10 +75,10 @@ jobs:
           };
           
           try {
-            console.log('Sending request to:', '${{ github.event.inputs.endpoint }}');
+            console.log('Sending request to:', '${{ github.event.inputs.endpoint || 'https://httpbin.org/post' }}');
             console.log('Payload:', JSON.stringify(payload, null, 2));
             
-            const response = await http.post('${{ github.event.inputs.endpoint }}', payload, config);
+            const response = await http.post('${{ github.event.inputs.endpoint || 'https://httpbin.org/post' }}', payload, config);
             
             console.log('✅ Success!');
             console.log('Status:', response.status);
@@ -110,7 +110,7 @@ jobs:
         async function authenticatedRequest() {
           try {
             // First, get an access token
-            const authResponse = await axios.post('${{ secrets.AUTH_ENDPOINT }}', {
+            const authResponse = await axios.post('${{ secrets.AUTH_ENDPOINT || 'https://httpbin.org/post' }}', {
               client_id: '${{ secrets.CLIENT_ID }}',
               client_secret: '${{ secrets.CLIENT_SECRET }}',
               grant_type: 'client_credentials'
@@ -120,7 +120,7 @@ jobs:
             console.log('✅ Authentication successful');
             
             // Now make the authenticated request
-            const response = await axios.post('${{ secrets.PROTECTED_ENDPOINT }}', {
+            const response = await axios.post('${{ secrets.PROTECTED_ENDPOINT || 'https://httpbin.org/post' }}', {
               message: 'Authenticated request from GitHub Action',
               repository: '${{ github.repository }}',
               timestamp: new Date().toISOString()
@@ -152,9 +152,9 @@ jobs:
         
         async function batchRequests() {
           const endpoints = [
-            '${{ secrets.ENDPOINT_1 }}',
-            '${{ secrets.ENDPOINT_2 }}',
-            '${{ secrets.ENDPOINT_3 }}'
+            '${{ secrets.ENDPOINT_1 || 'https://httpbin.org/post' }}',
+            '${{ secrets.ENDPOINT_2 || 'https://httpbin.org/post' }}',
+            '${{ secrets.ENDPOINT_3 || 'https://httpbin.org/post' }}'
           ];
           
           const basePayload = {

@@ -28,7 +28,7 @@ jobs:
         
         async function makePostRequest() {
           try {
-            const response = await axios.post('${{ secrets.API_ENDPOINT }}', {
+            const response = await axios.post('${{ secrets.API_ENDPOINT || 'https://httpbin.org/post' }}', {
               message: 'Hello from GitHub Action',
               repository: '${{ github.repository }}',
               branch: '${{ github.ref_name }}',
@@ -58,7 +58,7 @@ jobs:
         node -e "
         async function makeFetchRequest() {
           try {
-            const response = await fetch('${{ secrets.WEBHOOK_URL }}', {
+            const response = await fetch('${{ secrets.WEBHOOK_URL || 'https://httpbin.org/post' }}', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
