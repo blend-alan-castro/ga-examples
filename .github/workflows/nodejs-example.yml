@@ -88,3 +88,75 @@ jobs:
         
         makeGetRequest();
         "
+        
+    - name: Make POST request with Node.js to Applications endpoint
+      run: |
+        echo "📍 Using endpoint: ${{ secrets.API_ENDPOINT }}/home-lending/applications"
+        node -e "
+        const axios = require('axios');
+        
+        async function makePostRequest() {
+          try {
+            const response = await axios.post('${{ secrets.API_ENDPOINT }}/home-lending/applications', {
+              solutionSubType: 'MORTGAGE',
+              party: {
+                taxpayerIdentifier: {
+                  type: 'SOCIAL_SECURITY_NUMBER',
+                  value: '000113933'
+                },
+                email: 'alan-castro+athenaai@blend.com',
+                dateOfBirth: '1995-10-03T20:07:27+00:00'
+              },
+              redirect: true,
+              sendEmailInvite: true,
+              applicationSource: {
+                type: 'LOS'
+              },
+              applicationExperienceType: 'FULL_APPLICATION',
+              loanPurposeType: 'PURCHASE',
+              locPurposeType: 'HOME_PURCHASE',
+              homeEquityLoanPurposeType: 'HOME_PURCHASE',
+              lienPriorityType: 'FIRST_LIEN',
+              paymentType: 'INTEREST_ONLY',
+              loanAmount: 100000,
+              communityId: '12345',
+              leadId: 'leadId1',
+              crmId: 'crmLead1',
+              losId: 'Loan-12391',
+              referenceNumber: 124123,
+              applicationTemplateId: 'fd658b97-f901-4b14-b693-4654d276c909',
+              appSource: 'ORGANIC_LEAD',
+              interestRate: 4.25,
+              mortgageType: 'CONVENTIONAL',
+              branchIdOverride: '12345'
+            }, {
+              headers: {
+                'Content-Type': 'application/json',
+                'accept': 'application/json; charset=utf-8',
+                'Authorization': 'Bearer ${{ secrets.API_TOKEN }}',
+                'blend-api-version': '10.0.0',
+                'blend-target-instance': '${{ secrets.TENANT }}',
+                'cache-control': 'no-cache'
+              }
+            });
+            
+            console.log('Response status:', response.status);
+            console.log('Response data:', response.data);
+            
+            // Check for error messages in response
+            if (response.data && response.data.error) {
+              console.error('❌ API returned an error:', response.data);
+              process.exit(1);
+            }
+          } catch (error) {
+            console.error('Error:', error.message);
+            if (error.response) {
+              console.error('Response status:', error.response.status);
+              console.error('Response data:', error.response.data);
+            }
+            process.exit(1);
+          }
+        }
+        
+        makePostRequest();
+        "
