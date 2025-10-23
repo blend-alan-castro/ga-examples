@@ -21,12 +21,12 @@ jobs:
     - name: Install dependencies
       run: npm init -y && npm install axios
       
-    - name: Make POST request with Node.js to Authentication Status endpoint
+    - name: Make GET request with Node.js to Authentication Status endpoint
       run: |
         node -e "
         const axios = require('axios');
         
-        async function makePostRequest() {
+        async function makeGetRequest() {
           try {
             const response = await axios.get('${{ secrets.API_ENDPOINT }}/authentication-status', {
               headers: {
@@ -52,13 +52,13 @@ jobs:
           }
         }
         
-        makePostRequest();
+        makeGetRequest();
         "
         
-    - name: GET with fetch (Node.js 18+) to Closings endpoint
+    - name: Make GET request with Node.js to Closings endpoint
       run: |
         node -e "
-        async function makeFetchRequest() {
+        async function makeGetRequest() {
           try {
             const response = await axios.get('${{ secrets.API_ENDPOINT }}/close/closings?applicationId=aa9fdaa2-7bf3-4411-a836-c2a46117f5c3', {
               headers: {
@@ -80,5 +80,5 @@ jobs:
           }
         }
         
-        makeFetchRequest();
+        makeGetRequest();
         "
