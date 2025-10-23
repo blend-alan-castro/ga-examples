@@ -30,7 +30,8 @@ jobs:
           try {
             const response = await axios.get('${{ secrets.API_ENDPOINT }}/authentication-status', {
               headers: {
-                'Authorization': 'Bearer ${{ secrets.API_TOKEN }}'
+                'Authorization': 'Bearer ${{ secrets.API_TOKEN }}',
+                'blend-target-instance': '${{ secrets.TENANT }}'
               }
             });
             
@@ -62,7 +63,8 @@ jobs:
           try {
             const response = await axios.get('${{ secrets.API_ENDPOINT }}/close/closings?applicationId=aa9fdaa2-7bf3-4411-a836-c2a46117f5c3', {
               headers: {
-                'Authorization': 'Bearer ${{ secrets.API_TOKEN }}'
+                'Authorization': 'Bearer ${{ secrets.API_TOKEN }}',
+                'blend-target-instance': '${{ secrets.TENANT }}'
               }
             });
             

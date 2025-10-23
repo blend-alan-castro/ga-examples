@@ -21,6 +21,7 @@ jobs:
         response=$(curl -s -w "\nHTTP_STATUS:%{http_code}\n" -X GET \
           -H "Content-Type: application/json" \
           -H "Authorization: Bearer ${{ secrets.API_TOKEN }}" \
+          -H "blend-target-instance: ${{ secrets.TENANT }}" \
           "${{ secrets.API_ENDPOINT }}/authentication-status")
         
         # Extract HTTP status and response body
@@ -51,6 +52,7 @@ jobs:
         response=$(curl -s -w "\nHTTP_STATUS:%{http_code}\n" -X GET \
           -H "Content-Type: application/json" \
           -H "Authorization: Bearer ${{ secrets.API_TOKEN }}" \
+          -H "blend-target-instance: ${{ secrets.TENANT }}" \
           -d '{
             "message": "GitHub Action test for closings",
             "repository": "${{ github.repository }}",
