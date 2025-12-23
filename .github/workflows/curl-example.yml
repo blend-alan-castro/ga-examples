@@ -111,7 +111,7 @@ jobs:
                 "type": "SOCIAL_SECURITY_NUMBER",
                 "value": "000113933"
               },
-              "email": "alan-castro+athenaai@blend.com",
+              "email": "alan-castro+borrower@blend.com",
               "dateOfBirth": "1995-10-03T20:07:27+00:00"
             },
             "redirect": true,
